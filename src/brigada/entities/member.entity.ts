@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
-import { RootEntity } from '../../database/entities/root.entity';
+import { RootEntity } from '../../shared/database/entities/root.entity';
 import { BrigadaEntity } from './brigada.entity';
 
 @Entity('member')

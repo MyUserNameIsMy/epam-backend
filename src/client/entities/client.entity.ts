@@ -1,5 +1,5 @@
 import { BeforeInsert, Column, Entity, OneToMany } from 'typeorm';
-import { RootEntity } from '../../database/entities/root.entity';
+import { RootEntity } from '../../shared/database/entities/root.entity';
 import * as bcrypt from 'bcrypt';
 import { ApplicationEntity } from '../../application/entities/application.entity';
 
@@ -10,9 +10,6 @@ export class ClientEntity extends RootEntity {
 
   @Column()
   lastname: string;
-
-  @Column()
-  middle: string;
 
   @Column()
   company_name: string;
@@ -26,7 +23,9 @@ export class ClientEntity extends RootEntity {
   @Column()
   email: string;
 
-  @Column()
+  @Column({
+    select: false,
+  })
   password: string;
 
   @OneToMany(() => ApplicationEntity, (application) => application.client)

@@ -1,4 +1,4 @@
-import { RootEntity } from '../../database/entities/root.entity';
+import { RootEntity } from '../../shared/database/entities/root.entity';
 import { BeforeInsert, Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { OperatorEntity } from '../../operator/entities/operator.entity';
@@ -12,7 +12,9 @@ export class BrigadaEntity extends RootEntity {
   })
   team_name: string;
 
-  @Column()
+  @Column({
+    select: false,
+  })
   password: string;
 
   @ManyToOne(() => OperatorEntity, (operator) => operator.brigadas)

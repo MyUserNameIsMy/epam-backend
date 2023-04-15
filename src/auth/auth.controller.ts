@@ -1,34 +1,56 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { LoginDto } from './dto/login.dto';
+import { OperatorEntity } from '../operator/entities/operator.entity';
+import { RegisterOperatorDto } from './dto/register-operator.dto';
+import { RegisterClientDto } from './dto/register-client.dto';
+import { ClientEntity } from '../client/entities/client.entity';
+import { RegisterBrigadaDto } from './dto/register-brigada.dto';
+import { BrigadaEntity } from '../brigada/entities/brigada.entity';
+import { UserRoleEnum } from './enum/user-role.enum';
+import { Roles } from './decorator/role.decorator';
+import { RoleGuard } from './guard/role.guard';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @UseGuards(AuthGuard('client'))
+  @ApiBody({
+    type: LoginDto,
+  })
+  @Post('user')
+  async login(@Request() req): Promise<{ access_token: string }> {
+    return this.authService.generateToken(req.user);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Roles(UserRoleEnum.OPERATOR)
+  @UseGuards(RoleGuard)
+  @ApiBearerAuth()
+  @Post('register/operator')
+  async registerOperator(
+    @Body() operatorDto: RegisterOperatorDto,
+  ): Promise<OperatorEntity> {
+    return this.authService.registerOperator(operatorDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
+  @Post('register/client')
+  async registerClient(
+    @Body() clientDto: RegisterClientDto,
+  ): Promise<ClientEntity> {
+    return this.authService.registerClient(clientDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+  @Roles(UserRoleEnum.OPERATOR)
+  @UseGuards(RoleGuard)
+  @ApiBearerAuth()
+  @Post('register/brigada')
+  async registerBrigada(
+    @Body() brigadaDto: RegisterBrigadaDto,
+  ): Promise<BrigadaEntity> {
+    return this.authService.registerBrigada(brigadaDto);
   }
 }

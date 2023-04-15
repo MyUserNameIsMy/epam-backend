@@ -1,26 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
+import { ApplicationEntity } from './entities/application.entity';
+import { ApplicationStatusEnum } from '../shared/enum/application-status.enum';
 
 @Injectable()
 export class ApplicationService {
-  create(createApplicationDto: CreateApplicationDto) {
-    return 'This action adds a new application';
+  async getApplicationByStatus(
+    status: ApplicationStatusEnum,
+  ): Promise<ApplicationEntity[]> {
+    return await ApplicationEntity.find({
+      where: { status: status },
+    });
   }
 
-  findAll() {
-    return `This action returns all application`;
+  async getApplicationByStatusForClient(
+    client_id: number,
+    status: ApplicationStatusEnum,
+  ): Promise<ApplicationEntity[]> {
+    return await ApplicationEntity.find({
+      where: {
+        client: {
+          id: client_id,
+        },
+        status: status,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} application`;
-  }
-
-  update(id: number, updateApplicationDto: UpdateApplicationDto) {
-    return `This action updates a #${id} application`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} application`;
+  async create(
+    createApplicationDto: CreateApplicationDto,
+  ): Promise<ApplicationEntity> {
+    const application = new ApplicationEntity();
+    Object.assign(application, createApplicationDto);
+    return await application.save();
   }
 }

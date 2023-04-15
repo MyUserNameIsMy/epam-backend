@@ -1,34 +1,60 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApplicationService } from './application.service';
+import { ApplicationEntity } from './entities/application.entity';
 import { CreateApplicationDto } from './dto/create-application.dto';
-import { UpdateApplicationDto } from './dto/update-application.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Roles } from '../auth/decorator/role.decorator';
+import { UserRoleEnum } from '../auth/enum/user-role.enum';
+import { RoleGuard } from '../auth/guard/role.guard';
+import { ApplicationStatusEnum } from '../shared/enum/application-status.enum';
 
+@ApiTags('Application')
 @Controller('application')
 export class ApplicationController {
   constructor(private readonly applicationService: ApplicationService) {}
 
-  @Post()
-  create(@Body() createApplicationDto: CreateApplicationDto) {
-    return this.applicationService.create(createApplicationDto);
+  @Roles(UserRoleEnum.CLIENT)
+  @UseGuards(RoleGuard)
+  @ApiBearerAuth()
+  @Post('apply')
+  async apply(
+    @Body() applicationDto: CreateApplicationDto,
+  ): Promise<ApplicationEntity> {
+    return await this.applicationService.create(applicationDto);
   }
 
-  @Get()
-  findAll() {
-    return this.applicationService.findAll();
+  @Roles(UserRoleEnum.CLIENT)
+  @UseGuards(RoleGuard)
+  @ApiBearerAuth()
+  @Get('closed-application')
+  async getClosedApplication(@Request() req): Promise<ApplicationEntity[]> {
+    return await this.applicationService.getApplicationByStatusForClient(
+      +req.user.sub,
+      ApplicationStatusEnum.FINISHED,
+    );
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.applicationService.findOne(+id);
+  @Roles(UserRoleEnum.CLIENT)
+  @UseGuards(RoleGuard)
+  @ApiBearerAuth()
+  @Get('active-application')
+  async getActiveApplication(@Request() req): Promise<ApplicationEntity[]> {
+    return await this.applicationService.getApplicationByStatusForClient(
+      +req.user.sub,
+      ApplicationStatusEnum.IN_PROGRESS,
+    );
   }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateApplicationDto: UpdateApplicationDto) {
-    return this.applicationService.update(+id, updateApplicationDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.applicationService.remove(+id);
+  @Get('all-pending-application')
+  async getPendingApplication(): Promise<ApplicationEntity[]> {
+    return await this.applicationService.getApplicationByStatus(
+      ApplicationStatusEnum.PENDING,
+    );
   }
 }

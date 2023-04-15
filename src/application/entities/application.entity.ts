@@ -1,8 +1,9 @@
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
-import { RootEntity } from '../../database/entities/root.entity';
+import { RootEntity } from '../../shared/database/entities/root.entity';
 import { ApplicationPullEntity } from '../../operator/entities/application-pull.entity';
 import { ClientEntity } from '../../client/entities/client.entity';
-import { ApplicationStatus } from '../../shared/enum/application-status.enum';
+import { ApplicationStatusEnum } from '../../shared/enum/application-status.enum';
+import { WorkTypeEnum } from '../../shared/enum/work-type.enum';
 
 @Entity('application')
 export class ApplicationEntity extends RootEntity {
@@ -20,10 +21,16 @@ export class ApplicationEntity extends RootEntity {
 
   @Column({
     type: 'enum',
-    enum: ApplicationStatus,
-    default: ApplicationStatus.PENDING,
+    enum: ApplicationStatusEnum,
+    default: ApplicationStatusEnum.PENDING,
   })
-  status: ApplicationStatus;
+  status: ApplicationStatusEnum;
+
+  @Column({
+    type: 'enum',
+    enum: WorkTypeEnum,
+  })
+  work_type: WorkTypeEnum;
 
   @OneToMany(() => ClientEntity, (client) => client.applications)
   client: ClientEntity;
